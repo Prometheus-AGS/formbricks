@@ -5,10 +5,10 @@ x-environment: &environment
 
     # The url of your Formbricks instance used in the admin panel
     # Set this to your public-facing URL, e.g., https://example.com
-    WEBAPP_URL:
+    WEBAPP_URL: https://forms.prometheusags.ai
 
     # Required for next-auth. Should be the same as WEBAPP_URL
-    NEXTAUTH_URL:
+    NEXTAUTH_URL: https://forms.prometheusags.ai
 
     # PostgreSQL DB for Formbricks to connect to
     DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/formbricks?schema=public"
@@ -16,15 +16,15 @@ x-environment: &environment
     # NextJS Auth
     # @see: https://next-auth.js.org/configuration/options#nextauth_secret
     # You can use: `openssl rand -hex 32` to generate one
-    NEXTAUTH_SECRET:
+    NEXTAUTH_SECRET:  67e4b111ee73b21f3f02b8cb7f50cd99ff58f340358abd742edc74d2cc3c6189
 
     # Encryption Key is used for 2FA & Single use URLs for Link Surveys
     # You can use: $(openssl rand -hex 32) to generate one
-    ENCRYPTION_KEY:
+    ENCRYPTION_KEY: 8671fda36d4a13989652498bd53bf4324dc46a535ee1f267ad43a2fc5c3ba713
 
     # API Secret for running cron jobs.
     # You can use: $(openssl rand -hex 32) to generate a secure one
-    CRON_SECRET:
+    CRON_SECRET: 0b47ebb0241268f2ab070f8fffed0524f32b0864600ee12302fb3bc9e398d0ae
 
     # Set the minimum log level(debug, info, warn, error, fatal)
     # LOG_LEVEL: info
@@ -38,16 +38,16 @@ x-environment: &environment
     ############################################# OPTIONAL (EMAIL CONFIGURATION) #############################################
 
     # Email Configuration
-    # MAIL_FROM:
-    # MAIL_FROM_NAME:
-    # SMTP_HOST:
-    # SMTP_PORT:
-    # SMTP_USER:
-    # SMTP_PASSWORD:
-    # SMTP_AUTHENTICATED:
+    MAIL_FROM: tjames@prometheusags.ai
+    MAIL_FROM_NAME: Travis James
+    SMTP_HOST: smtp.resend.com
+    SMTP_PORT: 465
+    SMTP_USER: resend
+    SMTP_PASSWORD: re_34iY9hsh_GoDCN1rdUBS2ac3UfCoDLGiM
+    SMTP_AUTHENTICATED: 1
 
     # (Additional option for TLS (port 465) only)
-    # SMTP_SECURE_ENABLED:
+    SMTP_SECURE_ENABLED: 1
 
     # If set to 0, the server will accept connections without requiring authorization from the list of supplied CAs (default is 1).
     # SMTP_REJECT_UNAUTHORIZED_TLS: 0
@@ -203,6 +203,12 @@ x-environment: &environment
     # Configure the maximum age for the session in seconds. Default is 86400 (24 hours)
     # SESSION_MAX_AGE: 86400
 
+secrets:
+  database_url:
+    environment: DATABASE_URL
+  encryption_key:
+    environment: ENCRYPTION_KEY
+
 services:
   postgres:
     restart: always
@@ -216,7 +222,12 @@ services:
 
   formbricks:
     restart: always
-    image: tribehealth/formbricks:07162025
+    build:
+      context: ../
+      dockerfile: apps/web/Dockerfile
+      secrets:
+        - database_url
+        - encryption_key
     depends_on:
       - postgres
     ports:

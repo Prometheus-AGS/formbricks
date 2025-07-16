@@ -29,6 +29,14 @@ RUN apk update && apk add --no-cache cmake g++ gcc jq make openssl-dev python3
 COPY apps/web/scripts/docker/read-secrets.sh /tmp/read-secrets.sh
 RUN chmod +x /tmp/read-secrets.sh
 
+# Accept build arguments for required environment variables
+ARG DATABASE_URL
+ARG ENCRYPTION_KEY
+
+# Set environment variables from build args
+ENV DATABASE_URL=${DATABASE_URL}
+ENV ENCRYPTION_KEY=${ENCRYPTION_KEY}
+
 # Increase Node.js memory limit as a regular build argument
 ARG NODE_OPTIONS="--max_old_space_size=4096"
 ENV NODE_OPTIONS=${NODE_OPTIONS}
@@ -53,11 +61,8 @@ RUN pnpm install --ignore-scripts
 # Build the database package first
 RUN pnpm build --filter=@formbricks/database
 
-# Build the project using our secret reader script
-# This mounts the secrets only during this build step without storing them in layers
-RUN --mount=type=secret,id=database_url \
-    --mount=type=secret,id=encryption_key \
-    /tmp/read-secrets.sh pnpm build --filter=@formbricks/web...
+# Build the project - environment variables are already set from build args
+RUN pnpm build --filter=@formbricks/web...
 
 # Extract Prisma version
 RUN jq -r '.devDependencies.prisma' packages/database/package.json > /prisma_version.txt
