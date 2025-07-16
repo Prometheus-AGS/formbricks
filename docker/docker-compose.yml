@@ -216,7 +216,7 @@ services:
 
   formbricks:
     restart: always
-    image: ghcr.io/formbricks/formbricks:latest
+    image: tribehealth/formbricks:07162025
     depends_on:
       - postgres
     ports:
